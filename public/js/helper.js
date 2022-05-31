@@ -11,6 +11,7 @@ $(document).ready(function () {
         // var user_id = $(this).data('id');
         getAjax('list-suggestions?page=' + page);
     });
+    $('#get_suggestions_btn').click();
 
     /* When click on received requests */
     $('body').on('click', '#get_received_requests_btn', function () {
@@ -37,9 +38,23 @@ $(document).ready(function () {
     });
 
     $('body').on('click', '#load_more_btn', function () {
-        var page = $(this).data("next-page");
+        var active_tab = $(".btn-check:checked + .btn-outline-primary");
+        switch( active_tab.data("tab-type") ){
+          case("suggestion"):
+            var hit_url = "list-suggestions";
+          break;
+          case("sent-request"):
+            var hit_url = "list-sent-requests";
+          break;
+          case("received-requests"):
+            var hit_url = "list-received-requests";
+          break;
+          case("connections"):
+            var hit_url = "connections";
+        }
+        var page = active_tab.data("next-page");
         // var user_id = $(this).data('id');
-        getAjax('list-suggestions?page=' + page);
+        getAjax( hit_url + '?page=' + page);
         
     });
 });
@@ -52,16 +67,18 @@ $('body').on('click', '.create_request_btn', function () {
 // when click on accept request 
 $('body').on('click', '.accept_request_btn', function () {
     var id = $(this).data('id');
+    $(this).parents('.my-2').remove();
     $.get('accept-request/' + id, function (data) {
-        $(this).parents('.my-2').remove();
+        
     })
 });
 
 // when click cancel request
 $('body').on('click', '.cancel_request_btn', function () {
   var id = $(this).data('id');
+  $(this).parents('.my-2').remove();
   $.get('withdraw-request/' + id, function (data) {
-    $(this).parents('.my-2').remove();
+    
   })
 });
 
@@ -70,9 +87,13 @@ function getAjax(url) {
   $.get(url, function (data) {
     if( data.next_page ){
       $("#load_more_btn").data("next-page",data.next_page);
+      $("#load_more_btn").show();
     }else{
       $("#load_more_btn").hide();
     }
+    var active_tab = $(".btn-check:checked + .btn-outline-primary");
+    active_tab.data("next-page",data.next_page);
+
     $('#content .px-2.common-skelton').remove();
     $('#content').append(data.data);
   })
