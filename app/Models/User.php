@@ -43,10 +43,10 @@ class User extends Authenticatable
     ];
 
     public function sentRequests() {
-        return $this->hasMany(Request::class, 'sent_to');
+        return $this->hasMany(Request::class, 'sent_to', 'id');
     }
     public function receivedRequests() {
-        return $this->hasMany(Request::class, 'sent_by');
+        return $this->hasMany(Request::class, 'sent_by', 'id');
     }
 
     /** Many to many relationship **/

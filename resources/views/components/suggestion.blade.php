@@ -1,6 +1,6 @@
 @forelse ($suggestions as $suggestion)
 <div class="my-2 shadow  text-white bg-dark p-1" id="">
-  <div class="d-flex justify-content-between">
+  <div class="d-flex justify-content-between {{ $suggestion->recievedUserRequests->pluck('id') }}">
     <table class="ms-1">
         <td class="align-middle">{{ $suggestion->name }}</td>
         <td class="align-middle"> - </td>

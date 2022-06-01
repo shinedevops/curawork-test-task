@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\{User,Request as Reqeusts};
 use Auth;
+use App\Traits\CommonData;
 
 class HomeController extends Controller
 {
+    use CommonData;
     /**
      * Create a new controller instance.
      *
@@ -23,27 +25,24 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+    public function index(Request $request)
     {   
         // count all suggestions
-        $suggestions = User::whereDoesntHave('sentRequests', function($q){
-            $q->where('sent_to', '!=', Auth::user()->id);
-        })->orWhereDoesntHave('receivedRequests', function($query){
-            $query->where('sent_by', '!=', Auth::user()->id);
-        })->count();
+        $suggestions = $this->getCount('suggestions');
 
         // count sent requests
-        $sentRequests = Auth::user()->sentUserRequests()->wherePivot('status', 0)->count();
-        
+        $sentRequests = $this->getCount('sentRequests');
+
         // count received requests
-        $receivedRequests = Auth::user()->recievedUserRequests()->wherePivot('status', 0)->count();
+        $receivedRequests = $this->getCount('receivedRequests');
 
         // count connections
-        $connections = User::whereHas('sentRequests', function($q){
-            $q->where('sent_to', Auth::user()->id)->where('status', 1);
-        })->orWhereHas('receivedRequests', function($query){
-            $query->where('sent_by', Auth::user()->id)->where('status', 1);
-        })->count();
+        $connections = $this->getCount('connections');
+        if( $request->ajax() ){
+            return compact('suggestions','sentRequests','receivedRequests','connections');
+        }
+
         return view('home',compact('suggestions','sentRequests','receivedRequests','connections'));
     }
+    
 }

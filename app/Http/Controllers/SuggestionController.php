@@ -13,12 +13,10 @@ class SuggestionController extends Controller
     */
     public function index()
     {
-        $suggestions = User::whereDoesntHave('sentRequests', function($q){
-            $q->where('sent_to', '!=', Auth::user()->id);
-        })->orWhereDoesntHave('receivedRequests', function($query){
-            $query->where('sent_by', '!=', Auth::user()->id);
+        $suggestions = User::whereDoesntHave("sentRequests",function($query){
+            $query->where('sent_by',Auth::id());
         })->paginate(10);
-
+        
         $suggestionDetail =  view('components.suggestion')->with('suggestions', $suggestions)->render();
 
         return response()->json(['success' => true, 'data' => $suggestionDetail , 'next_page' => $suggestions->hasMorePages() ? $suggestions->currentPage() + 1  : null ]);

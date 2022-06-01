@@ -4,112 +4,126 @@ $(document).ready(function () {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
+
     /* When click on suggestions */
     $('body').on('click', '#get_suggestions_btn', function () {
         var page = 1;
         $('#content').html('');
-        // var user_id = $(this).data('id');
         getAjax('list-suggestions?page=' + page);
     });
+
     $('#get_suggestions_btn').click();
 
     /* When click on received requests */
     $('body').on('click', '#get_received_requests_btn', function () {
       var page = 1;
       $('#content').html('');
-      // var user_id = $(this).data('id');
       getAjax('list-received-requests?=' + page);
     });
 
     /* When click on sent requests */
     $('body').on('click', '#get_sent_requests_btn', function () {
-      var page = 1;
-      $('#content').html('');
-      // var user_id = $(this).data('id');
-      getAjax('list-sent-requests?page=' + page);
+		var page = 1;
+		$('#content').html('');
+		getAjax('list-sent-requests?page=' + page);
     });
 
     /* When click on sent requests */
     $('body').on('click', '#get_connections_btn', function () {
-      var page = 1;
-      $('#content').html('');
-      // var user_id = $(this).data('id');
-      getAjax('connections?page=' + page);
+      	var page = 1;
+		$('#content').html('');
+		getAjax('connections?page=' + page);
     });
 
+    /* display skelton for different tabs */
     $('body').on('click', '#load_more_btn', function () {
         var active_tab = $(".btn-check:checked + .btn-outline-primary");
         switch( active_tab.data("tab-type") ){
-          case("suggestion"):
-            var hit_url = "list-suggestions";
-          break;
-          case("sent-request"):
-            var hit_url = "list-sent-requests";
-          break;
-          case("received-requests"):
-            var hit_url = "list-received-requests";
-          break;
-          case("connections"):
-            var hit_url = "connections";
+			case("suggestion"):
+				var hit_url = "list-suggestions";
+			break;
+			case("sent-request"):
+				var hit_url = "list-sent-requests";
+			break;
+			case("received-requests"):
+				var hit_url = "list-received-requests";
+			break;
+			case("connections"):
+				var hit_url = "connections";
         }
         var page = active_tab.data("next-page");
-        // var user_id = $(this).data('id');
         getAjax( hit_url + '?page=' + page);
-        
     });
 });
 
-// when click on connect button
+/* when click on connect button */
 $('body').on('click', '.create_request_btn', function () {
     var user_id = $(this).data('id');
     postAjax('send-request',user_id, this);
+	
 });
-// when click on accept request 
+
+// update tabs count
+function updateButtonCount(){
+	$.get('get-all-count', function (data) {
+		console.log( data );
+		$("#get_suggestions_btn").text( $("#get_suggestions_btn").text().replace(/\((.+?)\)/g, "("+ data.suggestions +")") );
+		$("#get_sent_requests_btn").text( $("#get_sent_requests_btn").text().replace(/\((.+?)\)/g, "("+ data.sentRequests +")") );
+		$("#get_received_requests_btn").text( $("#get_received_requests_btn").text().replace(/\((.+?)\)/g, "("+ data.receivedRequests +")") );
+		$("#get_connections_btn").text( $("#get_connections_btn").text().replace(/\((.+?)\)/g, "("+ data.connections +")") );
+	})
+}
+
+/* when click on accept request  */
 $('body').on('click', '.accept_request_btn', function () {
     var id = $(this).data('id');
     $(this).parents('.my-2').remove();
     $.get('accept-request/' + id, function (data) {
-        
-    })
+		updateButtonCount();
+	})
+	
 });
 
-// when click cancel request
+/* when click cancel request */
+
 $('body').on('click', '.cancel_request_btn', function () {
-  var id = $(this).data('id');
-  $(this).parents('.my-2').remove();
-  $.get('withdraw-request/' + id, function (data) {
-    
-  })
+	var id = $(this).data('id');
+	$(this).parents('.my-2').remove();
+	$.get('withdraw-request/' + id, function (data) {
+		updateButtonCount();
+	})
 });
 
-function getAjax(url) {
-  $('#content').append( $("#connections_in_common_skeleton .px-2.common-skelton").clone() );
-  $.get(url, function (data) {
-    if( data.next_page ){
-      $("#load_more_btn").data("next-page",data.next_page);
-      $("#load_more_btn").show();
-    }else{
-      $("#load_more_btn").hide();
-    }
-    var active_tab = $(".btn-check:checked + .btn-outline-primary");
-    active_tab.data("next-page",data.next_page);
-
-    $('#content .px-2.common-skelton').remove();
-    $('#content').append(data.data);
-  })
+// common ajax get method
+function getAjax(url,common = null) {
+	$('#content').append( $("#connections_in_common_skeleton .px-2.common-skelton").clone() );
+	$.get(url, function (data) {
+		if( data.next_page ){
+			$("#load_more_btn").data("next-page",data.next_page);
+			$("#load_more_btn").show();
+		}else{
+			$("#load_more_btn").hide();
+		}
+		var active_tab = $(".btn-check:checked + .btn-outline-primary");
+		active_tab.data("next-page",data.next_page);
+		$('#content .px-2.common-skelton').remove();
+		$('#content').append(data.data);
+  	})
 }
+// common ajax post method
 function postAjax(url, userId, that){
-  $.ajax({
-    type: "POST",
-    dataType: "json",
-    url: url,
-    data: {'id': userId},
-    success: function(data){					
-      if(data.success){
-        $(that).parents('.my-2').remove();
-      }
-    }
-  });
+  	$.ajax({
+		type: "POST",
+		dataType: "json",
+		url: url,
+    	data: {'id': userId},
+		success: function(data){					
+			if(data.success){
+				$(that).parents('.my-2').remove();
+			}
+			updateButtonCount();
+		}
+  	});
 }
 
 function ajaxForm(formItems) {
@@ -119,8 +133,6 @@ function ajaxForm(formItems) {
   });
   return form;
 }
-
-
 
 /**
  * 

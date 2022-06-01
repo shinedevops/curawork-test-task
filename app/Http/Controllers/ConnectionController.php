@@ -12,14 +12,9 @@ class ConnectionController extends Controller
     */
     public function index()
     {
-        // get connections
-        $connections = User::whereHas('sentRequests', function($q){
-            $q->where('sent_to', Auth::user()->id)->where('status', 1);
-        })->orWhereHas('receivedRequests', function($query){
-            $query->where('sent_by', Auth::user()->id)->where('status', 1);
-        })->paginate(10);
-
-      
+        $connections = Reqeusts::where(function($q){$q->where('sent_by',  Auth::user()->id)->orWhere('sent_to',  Auth::user()->id); })->where('status', 1)->paginate(10);
+        
+        //pass data to components
         $RequestDetail =  view('components.connection')->with('connections', $connections)->render();
 
         return response()->json(['success' => true, 'data' => $RequestDetail , 'next_page' => $connections->hasMorePages() ? $connections->currentPage() + 1  : null ]);

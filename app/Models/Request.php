@@ -15,4 +15,10 @@ class Request extends Model
         'status',
         'status'
     ];
+    public function sentBy() {
+        return $this->belongsTo(User::class, 'sent_by', 'id');
+    }
+    public function sentTo() {
+        return $this->belongsTo(User::class, 'sent_to', 'id');
+    }
 }
